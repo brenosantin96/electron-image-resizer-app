@@ -1,5 +1,5 @@
 const path = require("path");
-const { app, BrowserWindow, Menu, globalShortcut } = require("electron")
+const { app, BrowserWindow, Menu, globalShortcut, ipcMain } = require("electron")
 console.log("Hello World");
 
 const isDev = process.env.NODE_ENV !== "production"
@@ -12,7 +12,12 @@ function createMainWindow() {
     const mainWindow = new BrowserWindow({
         title: "Image Resizer",
         width: isDev ? 1000 : 500,
-        height: 800
+        height: 800,
+        webPreferences: {
+            contextIsolation: true,
+            nodeIntegration: true,
+            preload: path.join(__dirname, "preload.js")
+        }
     });
 
     //open devtools if in dev env
@@ -93,6 +98,29 @@ const menu = [
         ]
     }] : [])
 ]
+
+
+//Respond to ipcRenderer resize
+ipcMain.on("image:resize", (e, options) => {
+
+    const file = options.file;
+
+    // Obtenha o caminho completo do arquivo no processo principal
+    //const imgPath = file.path || path.join(__dirname, file.name);
+
+    //console.log("Caminho da imagem:", imgPath);
+    
+    console.log("DIRNAME:", __dirname)
+    console.log("FILE: ", file)
+    console.log("OPTIONS.FILE: ", options.file)
+    console.log("PATHJOIN:", path.join(__dirname, file.name))
+
+    // Agora você pode continuar a lógica com imgPath
+    // Por exemplo, enviar de volta ao renderer se necessário
+   // e.sender.send("image:resized", { imgPath, width: options.width, height: options.height });
+
+})
+
 
 app.on("window-all-closed", () => {
     if (!isMac) {
